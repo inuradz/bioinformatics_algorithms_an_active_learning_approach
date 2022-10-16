@@ -17,6 +17,7 @@ enum Commands {
     PatternCount(PatternCountArgs),
     BetterFrequentWords(BetterFrequentWordsArgs),
     ReverseCompliment(ReverseComplimentArgs),
+    PatternMatchProblem(PatternMatchProblemArgs),
 }
 
 #[derive(Debug, Args, Clone)]
@@ -33,6 +34,12 @@ struct BetterFrequentWordsArgs {
 
 #[derive(Debug, Args, Clone)]
 struct ReverseComplimentArgs {
+    // The file contain the text to search
+    path: String,
+}
+
+#[derive(Debug, Args, Clone)]
+struct PatternMatchProblemArgs {
     // The file contain the text to search
     path: String,
 }
@@ -114,6 +121,18 @@ fn compliment_dna(text: &String) -> String {
     }).collect();
 }
 
+fn pattern_match_indexes(text: &String, pattern: &String) -> Vec<usize> {
+    let mut index = Vec::new();
+    let pattern_len = pattern.len();
+    for i in 0..(text.len() - pattern_len + 1) {
+        if pattern.eq(&text[i..i + pattern_len]) {
+            index.push(i)
+        }
+    }
+    return index;
+}
+
+
 pub fn chapter1_command_runner(stuff: Chapter1Args) {
     match stuff.commands {
         Commands::PatternCount(args) => {
@@ -122,8 +141,10 @@ pub fn chapter1_command_runner(stuff: Chapter1Args) {
             let mut text = String::new();
             reader.read_line(&mut text).unwrap();
             text.pop();
+            text.pop();
             let mut pattern = String::new();
             reader.read_line(&mut pattern).unwrap();
+            pattern.pop();
             pattern.pop();
             println!("{}", pattern_count(&text, &pattern));
         }
@@ -132,6 +153,7 @@ pub fn chapter1_command_runner(stuff: Chapter1Args) {
             let mut reader = BufReader::new(file);
             let mut text = String::new();
             reader.read_line(&mut text).unwrap();
+            text.pop();
             text.pop();
             let mut k_len_thing = String::new();
             reader.read_line(&mut k_len_thing).unwrap();
@@ -142,7 +164,23 @@ pub fn chapter1_command_runner(stuff: Chapter1Args) {
         Commands::ReverseCompliment(args) => {
             let mut line = read_to_string(args.path).unwrap();
             line.pop();
+            line.pop();
             println!("{}", compliment_dna(&line).chars().rev().collect::<String>());
+        },
+        Commands::PatternMatchProblem(args) => {
+            let file = File::open(args.path).unwrap();
+            let mut reader = BufReader::new(file);
+            let mut pattern = String::new();
+            reader.read_line(&mut pattern).unwrap();
+            pattern.pop();
+            pattern.pop();
+            let mut sequence = String::new();
+            reader.read_line(&mut sequence).unwrap();
+            sequence.pop();
+            sequence.pop();
+            for thing in pattern_match_indexes( &sequence, &pattern) {
+                print!(" {}", thing);
+            }
         }
     }
 }
